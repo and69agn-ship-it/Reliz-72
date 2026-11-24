@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Список покупок</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #e6f4f5;
+            color: #2d3748;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100dvh;
+            overflow: hidden;
+            margin: 0;
+        }
+        .phone-container {
+            width: 100%;
+            max-width: 420px;
+            height: 100dvh;
+            max-height: 850px;
+            background: #e6f4f5;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        @media (min-width: 421px) {
+            .phone-container {
+                border-radius: 40px;
+                border: 10px solid #2d3748;
+                height: 800px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            }
+        }
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px 110px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .search-box-wrap {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            border: 1px solid #cbd5e0;
+        }
+        .search-box-wrap input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+            background: transparent;
+            color: #2d3748;
+            margin-left: 8px;
+        }
+        .item-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-left: 6px solid #2b6cb0;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.15s;
+            flex-shrink: 0;
+            width: 100%;
+            margin-left: 0;
+        }
+        .item-card:active {
+            background: #f7fafc;
+        }
+        .item-card.group-card {
+            background: #ffffff;
+            border-left: 6px solid #38a169;
+        }
+        .item-card.subcat-card {
+            margin-left: 20px;
+            width: calc(100% - 20px);
+            background: #fbfbfc;
+        }
+        .item-card.sub-subcat-card {
+            margin-left: 36px;
+            width: calc(100% - 36px);
+            background: #f7f9fc;
+        }
+        .item-card.product-card {
+            margin-left: 20px;
+            width: calc(100% - 20px);
+            background: #faf9fc;
+        }
+        .item-card.subcat-product-card {
+            margin-left: 40px;
+            width: calc(100% - 40px);
+            background: #faf9fc;
+        }
+        .item-card.sub-subcat-product-card {
+            margin-left: 52px;
+            width: calc(100% - 52px);
+            background: #faf9fc;
+        }
+        .item-card.full-width-card {
+            margin-left: 0 !important;
+            width: 100% !important;
+            background: #ffffff !important;
+        }
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        .star-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #cbd5e0;
+            cursor: pointer;
+            padding: 2px;
+        }
+        .star-toggle.active {
+            color: #d69e2e;
+        }
+        .item-img-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .item-text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .item-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d3748;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-subtitle {
+            font-size: 11px;
+            color: #718096;
+            font-weight: 500;
+        }
+        .category-arrow {
+            font-size: 12px;
+            color: #a0aec0;
+            transition: transform 0.2s;
+            margin-right: 6px;
+        }
+        .category-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dots-menu-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #a0aec0;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+        }
+        .dots-menu-btn:active {
+            background: #edf2f7;
+        }
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .checkbox-custom.checked {
+            background: #319795;
+            border-color: #319795;
+            color: #ffffff;
+            font-size: 13px;
+        }
+        .bottom-nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 8px 12px calc(18px + env(safe-area-inset-bottom, 0px)) 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            z-index: 100;
+            gap: 4px;
+        }
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 10px;
+            color: #718096;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+        .nav-tab.active {
+            background: #edf2f7;
+            color: #2b6cb0;
+            font-weight: 600;
+        }
+        .nav-tab.active-star-tab {
+            color: #d69e2e;
+            background: #fefcbf;
+        }
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #ffffff;
+            width: 100%;
+            max-width: 340px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #319795;
+            background: #ffffff;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+        .modal-btn.cancel {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        .modal-btn.submit {
+            background: #319795;
+            color: #ffffff;
+        }
+        .modal-btn.star-btn {
+            background: #fefcbf;
+            color: #b7791f;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .modal-btn.danger {
+            background: #e53e3e;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="content-area" id="contentArea"></div>
+
+    <div class="bottom-nav-bar">
+        <button class="nav-tab active" id="tabHome" onclick="switchTab('home')">
+            <span style="font-size: 16px;">🏠</span>
+            <span>Головна</span>
+        </button>
+        <button class="nav-tab" id="tabCatalog" onclick="switchTab('catalog')">
+            <span style="font-size: 16px;">📖</span>
+            <span>Каталог</span>
+        </button>
+        <button class="nav-tab" id="tabMyList" onclick="switchTab('mylist')">
+            <span style="font-size: 16px;">📝</span>
+            <span>Список</span>
+        </button>
+        <button class="nav-tab" id="tabFavorites" onclick="switchTab('favorites')">
+            <span style="font-size: 16px;">⭐</span>
+            <span>Улюблені</span>
+        </button>
+        <button class="nav-tab" id="tabLists" onclick="switchTab('lists')">
+            <span style="font-size: 16px;">📚</span>
+            <span>Списки</span>
+        </button>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-content">
+        <div class="modal-title" id="modalTitle">Додати новий продукт</div>
+        <div class="form-group" id="groupProductName">
+            <label class="form-label" id="labelInputName">Назва продукту</label>
+            <input type="text" id="newProductName" class="form-input" placeholder="Наприклад: Лампочка, Молоко...">
+        </div>
+        <div class="form-group" id="groupCategory">
+            <label class="form-label">Категорія (група товарів)</label>
+            <select id="newProductCategory" class="form-select" onchange="handleCategoryChange()"></select>
+        </div>
+        <div class="form-group" id="groupNewCategory" style="display: none;">
+            <label class="form-label">Назва нової категорії</label>
+            <input type="text" id="newCategoryInput" class="form-input" placeholder="Наприклад: Овочі, Молочні...">
+        </div>
+        <div class="form-group" id="groupAddToSelectedList" style="display: none; flex-direction: row; align-items: center; gap: 8px; background: #edf2f7; padding: 10px 12px; border-radius: 10px;">
+            <input type="checkbox" id="addToSelectedListCheckbox" checked style="width: 18px; height: 18px; accent-color: #319795; cursor: pointer;">
+            <label for="addToSelectedListCheckbox" id="addToSelectedListLabel" style="font-size: 13px; font-weight: 600; color: #2d3748; cursor: pointer;">Також додати до списку</label>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeModal()">Скасувати</button>
+            <button class="modal-btn submit" onclick="submitModalData()">Додати</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="selectListModal">
+    <div class="modal-content">
+        <div class="modal-title" id="selectListModalTitle">Додати до списку</div>
+        <div class="form-group" id="existingListGroup">
+            <label class="form-label">Виберіть існуючий список</label>
+            <select id="targetListSelect" class="form-select"></select>
+        </div>
+        <div class="form-group" id="newListInputGroup" style="display:none;">
+            <label class="form-label">Назва нового списку</label>
+            <input type="text" id="newListNameInput" class="form-input" placeholder="Наприклад: Супермаркет, Дім...">
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeSelectListModal()">Скасувати</button>
+            <button class="modal-btn submit" onclick="confirmAddToList()">Додати</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="emptyListPromptModal">
+    <div class="modal-content">
+        <div class="modal-title" id="emptyListPromptTitle">Список порожній</div>
+        <div style="font-size: 14px; color: #4a5568; text-align: center;" id="emptyListPromptText">
+            Цей список порожній. Бажаєте перейти до каталогу для вибору товарів?
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeEmptyListPrompt()">Скасувати</button>
+            <button class="modal-btn submit" onclick="goToCatalogForEmptyList()">До каталогу</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="postAddPromptModal">
+    <div class="modal-content">
+        <div class="modal-title" id="postAddModalTitle">Товар додано! 🛒</div>
+        <div style="font-size: 14px; color: #4a5568; text-align: center;" id="postAddPromptText">
+            Товар успішно додано до списку. Оберіть подальшу дію:
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="goToCatalogFromPostAdd()" title="Продовжити додавати з каталогу">Додати з каталогу</button>
+            <button class="modal-btn star-btn" onclick="goToFavoritesFromPostAdd()" title="Додати з улюблених">Додати з ⭐</button>
+            <button class="modal-btn submit" onclick="goToMyListFromPostAdd()" title="Перейти до списку">До списку</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addChoiceModal">
+    <div class="modal-content">
+        <div class="modal-title" id="addChoiceModalTitle">Додати товари до списку</div>
+        <div style="font-size: 14px; color: #4a5568; text-align: center;">
+            Оберіть джерело додавання товарів:
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <button class="modal-btn submit" style="padding: 12px; font-size: 14px; width: 100%;" onclick="chooseAddFromCatalog()">📖 Додати з каталогу</button>
+            <button class="modal-btn star-btn" style="padding: 12px; font-size: 14px; width: 100%; justify-content: center;" onclick="chooseAddFromFavorites()">⭐ Додати з улюблених</button>
+            <button class="modal-btn cancel" style="padding: 12px; font-size: 14px; width: 100%;" onclick="chooseAddCustomProduct()">➕ Створити новий товар</button>
+        </div>
+        <div class="modal-actions" style="margin-top: 0;">
+            <button class="modal-btn cancel" onclick="closeAddChoiceModal()" style="width: 100%;">Скасувати</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-title" id="deleteModalTitle">Видалити елемент?</div>
+        <div style="font-size: 14px; color: #4a5568; text-align: center;" id="deleteModalText">
+            Ви дійсно хочете видалити цей елемент із каталогу?
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeDeleteModal()">Скасувати</button>
+            <button class="modal-btn danger" id="confirmDeleteBtn" onclick="confirmDeleteAction()">Видалити</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const defaultItems = [
+        { id: 1, name: "Продукти", type: "category", icon: "🛒", color: "#38a169", parentCategory: null, isGroup: true },
+        { id: 2, name: "Молочні продукти, яйця", type: "category", icon: "🥛", color: "#319795", parentCategory: "Продукти" },
+        { id: 3, name: "Хліб та випічка", type: "category", icon: "🍞", color: "#d69e2e", parentCategory: "Продукти" },
+        { id: 4, name: "Овочі та фрукти", type: "category", icon: "🍎", color: "#38a169", parentCategory: "Продукти" },
+        { id: 5, name: "М'ясо, птиця, риба та ковбасні вироби", type: "category", icon: "🥩", color: "#e53e3e", parentCategory: "Продукти", isSubGroup: true },
+        { id: 501, name: "М'ясо", type: "category", icon: "🥩", color: "#e53e3e", parentCategory: "М'ясо, птиця, риба та ковбасні вироби" },
+        { id: 502, name: "Птиця", type: "category", icon: "🍗", color: "#dd6b20", parentCategory: "М'ясо, птиця, риба та ковбасні вироби" },
+        { id: 503, name: "Риба та морепродукти", type: "category", icon: "🐟", color: "#3182ce", parentCategory: "М'ясо, птиця, риба та ковбасні вироби" },
+        { id: 504, name: "Ковбасні вироби та делікатеси", type: "category", icon: "🌭", color: "#c53030", parentCategory: "М'ясо, птиця, риба та ковбасні вироби" },
+        { id: 6, name: "Бакалія", type: "category", icon: "🌾", color: "#2b6cb0", parentCategory: "Продукти" },
+        { id: 7, name: "Напої", type: "category", icon: "☕", color: "#319795", parentCategory: "Продукти" },
+        { id: 8, name: "Солодощі та снеки", type: "category", icon: "🍫", color: "#d69e2e", parentCategory: "Продукти" },
+        { id: 9, name: "Побутова хімія", type: "category", icon: "🫧", color: "#805ad5", parentCategory: null },
+        { id: 10, name: "Господарські товари", type: "category", icon: "🧹", color: "#805ad5", parentCategory: null },
+        { id: 11, name: "Особиста гігієна та косметика", type: "category", icon: "🧼", color: "#d69e2e", parentCategory: null },
+        { id: 12, name: "Аптека та здоров'я", type: "category", icon: "💊", color: "#e53e3e", parentCategory: null },
+        { id: 13, name: "Товари для тварин", type: "category", icon: "🐾", color: "#38a169", parentCategory: null },
+        // М'ясо
+        { id: 201, name: "Свинина", type: "product", category: "М'ясо", icon: "🥩", starred: false, lists: [], checkedLists: [] },
+        { id: 202, name: "Яловичина", type: "product", category: "М'ясо", icon: "🥩", starred: false, lists: [], checkedLists: [] },
+        { id: 203, name: "Фарш", type: "product", category: "М'ясо", icon: "🥩", starred: false, lists: [], checkedLists: [] },
+        { id: 204, name: "Телятина", type: "product", category: "М'ясо", icon: "🥩", starred: false, lists: [], checkedLists: [] },
+        // Птиця
+        { id: 211, name: "Куряче філе", type: "product", category: "Птиця", icon: "🍗", starred: false, lists: [], checkedLists: [] },
+        { id: 212, name: "Курячі стегна / гомілки", type: "product", category: "Птиця", icon: "🍗", starred: false, lists: [], checkedLists: [] },
+        { id: 213, name: "Індичка", type: "product", category: "Птиця", icon: "🦃", starred: false, lists: [], checkedLists: [] },
+        { id: 214, name: "Куриця ціла", type: "product", category: "Птиця", icon: "🍗", starred: false, lists: [], checkedLists: [] },
+        // Риба та морепродукти
+        { id: 221, name: "Лосось / Форель", type: "product", category: "Риба та морепродукти", icon: "🐟", starred: false, lists: [], checkedLists: [] },
+        { id: 222, name: "Оселедець", type: "product", category: "Риба та морепродукти", icon: "🐟", starred: false, lists: [], checkedLists: [] },
+        { id: 223, name: "Скумбрія", type: "product", category: "Риба та морепродукти", icon: "🐟", starred: false, lists: [], checkedLists: [] },
+        { id: 224, name: "Креветки", type: "product", category: "Риба та морепродукти", icon: "🦐", starred: false, lists: [], checkedLists: [] },
+        // Ковбасні вироби та делікатеси
+        { id: 231, name: "Варена ковбаса", type: "product", category: "Ковбасні вироби та делікатеси", icon: "🌭", starred: false, lists: [], checkedLists: [] },
+        { id: 232, name: "Ковбаса салямі / копчена", type: "product", category: "Ковбасні вироби та делікатеси", icon: "🥓", starred: false, lists: [], checkedLists: [] },
+        { id: 233, name: "Сосиски / Сардельки", type: "product", category: "Ковбасні вироби та делікатеси", icon: "🌭", starred: false, lists: [], checkedLists: [] },
+        { id: 234, name: "Шинка / Балик", type: "product", category: "Ковбасні вироби та делікатеси", icon: "🥓", starred: false, lists: [], checkedLists: [] },
+        // Решта продуктів
+        { id: 100, name: "Молоко", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 101, name: "Яйця курячі", type: "product", category: "Молочні продукти, яйця", icon: "🥚", starred: false, lists: [], checkedLists: [] },
+        { id: 102, name: "Вершкове масло", type: "product", category: "Молочні продукти, яйця", icon: "🧈", starred: false, lists: [], checkedLists: [] },
+        { id: 103, name: "Твердий сир", type: "product", category: "Молочні продукти, яйця", icon: "🧀", starred: false, lists: [], checkedLists: [] },
+        { id: 104, name: "Плавлений сир", type: "product", category: "Молочні продукти, яйця", icon: "🧀", starred: false, lists: [], checkedLists: [] },
+        { id: 105, name: "Кисломолочний сир (творог)", type: "product", category: "Молочні продукти, яйця", icon: "🧀", starred: false, lists: [], checkedLists: [] },
+        { id: 106, name: "Сметана", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 107, name: "Кефір", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 108, name: "Йогурт", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 109, name: "Вершки", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 110, name: "Згущене молоко", type: "product", category: "Молочні продукти, яйця", icon: "🥫", starred: false, lists: [], checkedLists: [] },
+        { id: 111, name: "Ряжанка", type: "product", category: "Молочні продукти, яйця", icon: "🥛", starred: false, lists: [], checkedLists: [] },
+        { id: 112, name: "Сир кисломолочний солодкий / сирки", type: "product", category: "Молочні продукти, яйця", icon: "🧀", starred: false, lists: [], checkedLists: [] },
+        { id: 113, name: "Бринза / Фета / Моцарела", type: "product", category: "Молочні продукти, яйця", icon: "🧀", starred: false, lists: [], checkedLists: [] },
+        { id: 114, name: "Хліб", type: "product", category: "Хліб та випічка", icon: "🍞", starred: false, lists: [], checkedLists: [] },
+        { id: 115, name: "Батон", type: "product", category: "Хліб та випічка", icon: "🍞", starred: false, lists: [], checkedLists: [] },
+        { id: 116, name: "Лаваш", type: "product", category: "Хліб та випічка", icon: "🫓", starred: false, lists: [], checkedLists: [] },
+        { id: 117, name: "Булочки / Здоба", type: "product", category: "Хліб та випічка", icon: "🥐", starred: false, lists: [], checkedLists: [] },
+        { id: 118, name: "Хлібці", type: "product", category: "Хліб та випічка", icon: "🍘", starred: false, lists: [], checkedLists: [] },
+        { id: 119, name: "Яблука", type: "product", category: "Овочі та фрукти", icon: "🍎", starred: false, lists: [], checkedLists: [] },
+        { id: 120, name: "Картопля", type: "product", category: "Овочі та фрукти", icon: "🥔", starred: false, lists: [], checkedLists: [] },
+        { id: 121, name: "Морква", type: "product", category: "Овочі та фрукти", icon: "🥕", starred: false, lists: [], checkedLists: [] },
+        { id: 122, name: "Цибуля ріпчаста", type: "product", category: "Овочі та фрукти", icon: "🧅", starred: false, lists: [], checkedLists: [] },
+        { id: 123, name: "Часник", type: "product", category: "Овочі та фрукти", icon: "🧄", starred: false, lists: [], checkedLists: [] },
+        { id: 124, name: "Помідори (томати)", type: "product", category: "Овочі та фрукти", icon: "🍅", starred: false, lists: [], checkedLists: [] },
+        { id: 125, name: "Огірки", type: "product", category: "Овочі та фрукти", icon: "🥒", starred: false, lists: [], checkedLists: [] },
+        { id: 126, name: "Капуста білокачанна", type: "product", category: "Овочі та фрукти", icon: "🥬", starred: false, lists: [], checkedLists: [] },
+        { id: 127, name: "Перець болгарський", type: "product", category: "Овочі та фрукти", icon: "🫑", starred: false, lists: [], checkedLists: [] },
+        { id: 128, name: "Буряк", type: "product", category: "Овочі та фрукти", icon: "🟣", starred: false, lists: [], checkedLists: [] },
+        { id: 129, name: "Зелень (кріп, петрушка)", type: "product", category: "Овочі та фрукти", icon: "🌿", starred: false, lists: [], checkedLists: [] },
+        { id: 130, name: "Банани", type: "product", category: "Овочі та фрукти", icon: "🍌", starred: false, lists: [], checkedLists: [] },
+        { id: 131, name: "Апельсини", type: "product", category: "Овочі та фрукти", icon: "🍊", starred: false, lists: [], checkedLists: [] },
+        { id: 132, name: "Лимони", type: "product", category: "Овочі та фрукти", icon: "🍋", starred: false, lists: [], checkedLists: [] },
+        { id: 133, name: "Виноград", type: "product", category: "Овочі та фрукти", icon: "🍇", starred: false, lists: [], checkedLists: [] },
+        { id: 134, name: "Ківі", type: "product", category: "Овочі та фрукти", icon: "🥝", starred: false, lists: [], checkedLists: [] },
+        { id: 135, name: "Мандарини", type: "product", category: "Овочі та фрукти", icon: "🍊", starred: false, lists: [], checkedLists: [] },
+        { id: 136, name: "Полуниця", type: "product", category: "Овочі та фрукти", icon: "🍓", starred: false, lists: [], checkedLists: [] },
+        { id: 188, name: "Авокадо", type: "product", category: "Овочі та фрукти", icon: "🥑", starred: false, lists: [], checkedLists: [] },
+        { id: 189, name: "Кавун (арбуз)", type: "product", category: "Овочі та фрукти", icon: "🍉", starred: false, lists: [], checkedLists: [] },
+        { id: 190, name: "Диня", type: "product", category: "Овочі та фрукти", icon: "🍈", starred: false, lists: [], checkedLists: [] },
+        { id: 191, name: "Гриби", type: "product", category: "Овочі та фрукти", icon: "🍄", starred: false, lists: [], checkedLists: [] },
+        { id: 137, name: "Гречка", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 138, name: "Рис", type: "product", category: "Бакалія", icon: "🍚", starred: false, lists: [], checkedLists: [] },
+        { id: 139, name: "Вівсяні пластівці (Геркулес)", type: "product", category: "Бакалія", icon: "🥣", starred: false, lists: [], checkedLists: [] },
+        { id: 140, name: "Пшоно", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 141, name: "Перлова та ячна крупи", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 142, name: "Манна крупа", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 143, name: "Булгур / Кускус", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 144, name: "Бобові (горох, квасоля, сочевиця)", type: "product", category: "Бакалія", icon: "🫘", starred: false, lists: [], checkedLists: [] },
+        { id: 145, name: "Макарони", type: "product", category: "Бакалія", icon: "🍝", starred: false, lists: [], checkedLists: [] },
+        { id: 146, name: "Спагеті", type: "product", category: "Бакалія", icon: "🍝", starred: false, lists: [], checkedLists: [] },
+        { id: 147, name: "Вермішель", type: "product", category: "Бакалія", icon: "🍝", starred: false, lists: [], checkedLists: [] },
+        { id: 148, name: "Цукор", type: "product", category: "Бакалія", icon: "🧂", starred: false, lists: [], checkedLists: [] },
+        { id: 149, name: "Сіль", type: "product", category: "Бакалія", icon: "🧂", starred: false, lists: [], checkedLists: [] },
+        { id: 150, name: "Борошно (мука)", type: "product", category: "Бакалія", icon: "🌾", starred: false, lists: [], checkedLists: [] },
+        { id: 151, name: "Олія соняшникова", type: "product", category: "Бакалія", icon: "🌻", starred: false, lists: [], checkedLists: [] },
+        { id: 152, name: "Олія оливкова", type: "product", category: "Бакалія", icon: "🫒", starred: false, lists: [], checkedLists: [] },
+        { id: 153, name: "Оцет", type: "product", category: "Бакалія", icon: "🍾", starred: false, lists: [], checkedLists: [] },
+        { id: 154, name: "Сода харчова та розпушувач", type: "product", category: "Бакалія", icon: "📦", starred: false, lists: [], checkedLists: [] },
+        { id: 155, name: "Дріжджі", type: "product", category: "Бакалія", icon: "🍞", starred: false, lists: [], checkedLists: [] },
+        { id: 156, name: "Крохмаль та панірувальні сухарі", type: "product", category: "Бакалія", icon: "📦", starred: false, lists: [], checkedLists: [] },
+        { id: 157, name: "Чорний перець (мелений та горошком)", type: "product", category: "Бакалія", icon: "🌶️", starred: false, lists: [], checkedLists: [] },
+        { id: 158, name: "Лавровий лист", type: "product", category: "Бакалія", icon: "🌿", starred: false, lists: [], checkedLists: [] },
+        { id: 159, name: "Приправи та спеції", type: "product", category: "Бакалія", icon: "🧂", starred: false, lists: [], checkedLists: [] },
+        { id: 160, name: "Кетчуп та томатна паста", type: "product", category: "Бакалія", icon: "🍅", starred: false, lists: [], checkedLists: [] },
+        { id: 161, name: "Майонез", type: "product", category: "Бакалія", icon: "🥚", starred: false, lists: [], checkedLists: [] },
+        { id: 162, name: "Гірчиця та хрін", type: "product", category: "Бакалія", icon: "🌭", starred: false, lists: [], checkedLists: [] },
+        { id: 163, name: "Соєвий соус", type: "product", category: "Бакалія", icon: "🍾", starred: false, lists: [], checkedLists: [] },
+        { id: 164, name: "Консервований горошок та кукурудза", type: "product", category: "Бакалія", icon: "🌽", starred: false, lists: [], checkedLists: [] },
+        { id: 165, name: "Оливки та маслини", type: "product", category: "Бакалія", icon: "🫒", starred: false, lists: [], checkedLists: [] },
+        { id: 166, name: "Томати та огірки мариновані", type: "product", category: "Бакалія", icon: "🥒", starred: false, lists: [], checkedLists: [] },
+        { id: 167, name: "Квасоля консервована", type: "product", category: "Бакалія", icon: "🥫", starred: false, lists: [], checkedLists: [] },
+        { id: 168, name: "Вода мінеральна / питна", type: "product", category: "Напої", icon: "💧", starred: false, lists: [], checkedLists: [] },
+        { id: 169, name: "Чай (чорний, зелений, трав'яний)", type: "product", category: "Напої", icon: "🍵", starred: false, lists: [], checkedLists: [] },
+        { id: 170, name: "Кава (мелена, зернова, розчинна)", type: "product", category: "Напої", icon: "☕", starred: true, lists: [], checkedLists: [] },
+        { id: 171, name: "Сік / Нектар", type: "product", category: "Напої", icon: "🧃", starred: false, lists: [], checkedLists: [] },
+        { id: 172, name: "Печиво / Пряники / Вафлі", type: "product", category: "Солодощі та снеки", icon: "🍪", starred: false, lists: [], checkedLists: [] },
+        { id: 173, name: "Шоколад / Цукерки", type: "product", category: "Солодощі та снеки", icon: "🍫", starred: false, lists: [], checkedLists: [] },
+        { id: 174, name: "Мед / Варення", type: "product", category: "Солодощі та снеки", icon: "🍯", starred: false, lists: [], checkedLists: [] },
+        { id: 175, name: "Засіб для миття посуду", type: "product", category: "Побутова хімія", icon: "🫧", starred: false, lists: [], checkedLists: [] },
+        { id: 176, name: "Пральний порошок / гель", type: "product", category: "Побутова хімія", icon: "🧴", starred: false, lists: [], checkedLists: [] },
+        { id: 177, name: "Батарейки", type: "product", category: "Господарські товари", icon: "🔋", starred: true, lists: [], checkedLists: [] },
+        { id: 178, name: "Відро", type: "product", category: "Господарські товари", icon: "🪣", starred: false, lists: [], checkedLists: [] },
+        { id: 179, name: "Кухонна губка", type: "product", category: "Господарські товари", icon: "🧽", starred: false, lists: [], checkedLists: [] },
+        { id: 180, name: "Лампочка", type: "product", category: "Господарські товари", icon: "💡", starred: false, lists: [], checkedLists: [] },
+        { id: 181, name: "Пакети для сміття", type: "product", category: "Господарські товари", icon: "🗑️", starred: false, lists: [], checkedLists: [] },
+        { id: 182, name: "Туалетний папір", type: "product", category: "Особиста гігієна та косметика", icon: "🧻", starred: false, lists: [], checkedLists: [] },
+        { id: 183, name: "Зубна паста", type: "product", category: "Особиста гігієна та косметика", icon: "🦷", starred: false, lists: [], checkedLists: [] },
+        { id: 184, name: "Мило / Гель для душу", type: "product", category: "Особиста гігієна та косметика", icon: "🧼", starred: false, lists: [], checkedLists: [] },
+        { id: 185, name: "Шампунь", type: "product", category: "Особиста гігієна та косметика", icon: "🧴", starred: false, lists: [], checkedLists: [] },
+        { id: 186, name: "Вітаміни", type: "product", category: "Аптека та здоров'я", icon: "💊", starred: false, lists: [], checkedLists: [] },
+        { id: 187, name: "Корм для тварин", type: "product", category: "Товари для тварин", icon: "🐾", starred: false, lists: [], checkedLists: [] },
+        { id: 505, name: "Целюлозні та віскозні серветки", type: "product", category: "Господарські товари", icon: "🧹", starred: false, lists: [], checkedLists: [] },
+        { id: 506, name: "Ганчірки для підлоги", type: "product", category: "Господарські товари", icon: "🧽", starred: false, lists: [], checkedLists: [] },
+        { id: 507, name: "Металеві скребки", type: "product", category: "Господарські товари", icon: "🧼", starred: false, lists: [], checkedLists: [] },
+        { id: 508, name: "Господарські рукавички", type: "product", category: "Господарські товари", icon: "🧤", starred: false, lists: [], checkedLists: [] },
+        { id: 509, name: "Харчова плівка", type: "product", category: "Господарські товари", icon: "🎞️", starred: false, lists: [], checkedLists: [] },
+        { id: 510, name: "Алюмінієва фольга", type: "product", category: "Господарські товари", icon: "📜", starred: false, lists: [], checkedLists: [] },
+        { id: 511, name: "Папір для випічки (пергамент)", type: "product", category: "Господарські товари", icon: "📜", starred: false, lists: [], checkedLists: [] },
+        { id: 512, name: "Фасувальні пакети", type: "product", category: "Господарські товари", icon: "🛍️", starred: false, lists: [], checkedLists: [] },
+        { id: 513, name: "Портативний ліхтарик", type: "product", category: "Господарські товари", icon: "🔦", starred: false, lists: [], checkedLists: [] },
+        { id: 514, name: "Свічки", type: "product", category: "Господарські товари", icon: "🕯️", starred: false, lists: [], checkedLists: [] },
+        { id: 515, name: "Швабра", type: "product", category: "Господарські товари", icon: "🧹", starred: false, lists: [], checkedLists: [] },
+        { id: 516, name: "Віник та щітка для підлоги", type: "product", category: "Господарські товари", icon: "🧹", starred: false, lists: [], checkedLists: [] },
+        { id: 517, name: "Йоржик для унітазу", type: "product", category: "Господарські товари", icon: "🚽", starred: false, lists: [], checkedLists: [] },
+        { id: 518, name: "Сірники / запальничка", type: "product", category: "Господарські товари", icon: "🔥", starred: false, lists: [], checkedLists: [] },
+        { id: 519, name: "Суперклей", type: "product", category: "Господарські товари", icon: "📎", starred: false, lists: [], checkedLists: [] },
+        { id: 520, name: "Прищіпки для білизни", type: "product", category: "Господарські товари", icon: "📌", starred: false, lists: [], checkedLists: [] },
+        { id: 521, name: "Зубочистки", type: "product", category: "Господарські товари", icon: "🪵", starred: false, lists: [], checkedLists: [] },
+        { id: 522, name: "Кондиціонер для білизни", type: "product", category: "Побутова хімія", icon: "🧴", starred: false, lists: [], checkedLists: [] },
+        { id: 523, name: "Чистячий крем / гель (Cif / Domestos)", type: "product", category: "Побутова хімія", icon: "✨", starred: false, lists: [], checkedLists: [] },
+        { id: 524, name: "Засіб для чищення унітазу", type: "product", category: "Побутова хімія", icon: "🚽", starred: false, lists: [], checkedLists: [] },
+        { id: 525, name: "Туалетний блок / стікер", type: "product", category: "Побутова хімія", icon: "🧻", starred: false, lists: [], checkedLists: [] },
+        { id: 526, name: "Засіб для миття скла", type: "product", category: "Побутова хімія", icon: "🪟", starred: false, lists: [], checkedLists: [] },
+        { id: 527, name: "Засіб для прочищення труб", type: "product", category: "Побутова хімія", icon: "🪠", starred: false, lists: [], checkedLists: [] },
+        { id: 528, name: "Засіб проти жиру (антижир)", type: "product", category: "Побутова хімія", icon: "🍳", starred: false, lists: [], checkedLists: [] },
+        { id: 529, name: "Кисневий плямовивідник", type: "product", category: "Побутова хімія", icon: "🫧", starred: false, lists: [], checkedLists: [] },
+        { id: 530, name: "Освіжувач повітря", type: "product", category: "Побутова хімія", icon: "🌸", starred: false, lists: [], checkedLists: [] }
+    ];
+
+    let state = {
+        currentTab: "home",
+        searchQuery: "",
+        collapsedCategories: {},
+        itemToDelete: null,
+        listToDelete: null,
+        selectedList: null,
+        customLists: [],
+        pendingProductId: null,
+        promptListCandidate: null,
+        items: defaultItems
+    };
+
+    const saved = localStorage.getItem("redmi_shopping_app_data_v72") || localStorage.getItem("redmi_shopping_app_data_v71");
+    if (saved) {
+        try { 
+            let parsed = JSON.parse(saved);
+            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                state.items = parsed.items;
+            }
+            state.selectedList = parsed.selectedList !== undefined ? parsed.selectedList : null;
+            state.customLists = parsed.customLists || [];
+        } catch(e) {}
+    }
+
+    function persist() {
+        localStorage.setItem("redmi_shopping_app_data_v72", JSON.stringify({
+            items: state.items,
+            selectedList: state.selectedList,
+            customLists: state.customLists
+        }));
+    }
+
+    function switchTab(tab) {
+        state.currentTab = tab;
+        state.searchQuery = "";
+        if (tab === 'catalog') {
+            state.collapsedCategories = {};
+        }
+        updateNavActiveStates();
+        render();
+    }
+
+    function updateNavActiveStates() {
+        const tabs = ['tabHome', 'tabCatalog', 'tabMyList', 'tabFavorites', 'tabLists'];
+        tabs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active', 'active-star-tab');
+        });
+
+        if (state.currentTab === 'home') document.getElementById('tabHome')?.classList.add('active');
+        if (state.currentTab === 'catalog') document.getElementById('tabCatalog')?.classList.add('active');
+        if (state.currentTab === 'mylist') document.getElementById('tabMyList')?.classList.add('active');
+        if (state.currentTab === 'favorites') {
+            const el = document.getElementById('tabFavorites');
+            if (el) {
+                el.classList.add('active');
+                el.classList.add('active-star-tab');
+            }
+        }
+        if (state.currentTab === 'lists') document.getElementById('tabLists')?.classList.add('active');
+
+        const bottomNavBar = document.querySelector('.bottom-nav-bar');
+        const contentArea = document.getElementById('contentArea');
+        if (bottomNavBar) {
+            if (state.currentTab === 'home') {
+                bottomNavBar.style.display = 'none';
+                if (contentArea) contentArea.style.paddingBottom = '24px';
+            } else {
+                bottomNavBar.style.display = 'flex';
+                if (contentArea) contentArea.style.paddingBottom = '110px';
+            }
+        }
+    }
+
+    function handleSearchInput(e) {
+        state.searchQuery = e.target.value;
+        const clearBtn = document.getElementById("clearSearchBtn");
+        if (clearBtn) {
+            clearBtn.style.display = state.searchQuery.length > 0 ? "inline-flex" : "none";
+        }
+        renderItemsList();
+    }
+
+    function clearSearch() {
+        state.searchQuery = "";
+        const inputEl = document.getElementById("searchInputField");
+        if (inputEl) {
+            inputEl.value = "";
+            inputEl.focus();
+        }
+        const clearBtn = document.getElementById("clearSearchBtn");
+        if (clearBtn) clearBtn.style.display = "none";
+        renderItemsList();
+    }
+
+    function toggleStar(id, event) {
+        if (event) event.stopPropagation();
+        const item = state.items.find(i => i.id === id);
+        if (item) {
+            item.starred = !item.starred;
+            persist();
+            render();
+        }
+    }
+
+    function isItemInCurrentList(item) {
+        if (!state.selectedList || !item.lists) return false;
+        return item.lists.includes(state.selectedList);
+    }
+
+    function isListEmpty(listName) {
+        return !state.items.some(i => i.type === "product" && i.lists && i.lists.includes(listName));
+    }
+
+    function handleListClick(listName) {
+        state.selectedList = listName;
+        persist();
+
+        if (isListEmpty(listName)) {
+            state.promptListCandidate = listName;
+            openEmptyListPrompt();
+        } else {
+            switchTab("mylist");
+        }
+    }
+
+    function openEmptyListPrompt() {
+        const modal = document.getElementById("emptyListPromptModal");
+        const textEl = document.getElementById("emptyListPromptText");
+        if (textEl) {
+            textEl.innerHTML = `Список <b>"${state.promptListCandidate}"</b> порожній. Бажаєте перейти до каталогу для вибору товарів?`;
+        }
+        if (modal) modal.classList.add("active");
+    }
+
+    function closeEmptyListPrompt() {
+        state.promptListCandidate = null;
+        const modal = document.getElementById("emptyListPromptModal");
+        if (modal) modal.classList.remove("active");
+        switchTab("mylist");
+    }
+
+    function goToCatalogForEmptyList() {
+        const modal = document.getElementById("emptyListPromptModal");
+        if (modal) modal.classList.remove("active");
+        switchTab("catalog");
+    }
+
+    function openPostAddPrompt(titleText = "Товар успішно додано! 🛒") {
+        const modal = document.getElementById("postAddPromptModal");
+        const titleEl = document.getElementById("postAddModalTitle");
+        const textEl = document.getElementById("postAddPromptText");
+        if (titleEl) titleEl.innerText = titleText.includes("⚠️") || titleText.includes("⭐") ? "Увага!" : "Товар додано! 🛒";
+        if (textEl) {
+            textEl.innerHTML = `${titleText}<br>Оберіть подальшу дію:`;
+        }
+        if (modal) modal.classList.add("active");
+    }
+
+    function closePostAddPrompt() {
+        const modal = document.getElementById("postAddPromptModal");
+        if (modal) modal.classList.remove("active");
+    }
+
+    function goToCatalogFromPostAdd() {
+        closePostAddPrompt();
+        state.searchQuery = "";
+        switchTab("catalog");
+    }
+
+    function goToMyListFromPostAdd() {
+        closePostAddPrompt();
+        switchTab("mylist");
+    }
+
+    function goToFavoritesFromPostAdd() {
+        closePostAddPrompt();
+        let favorites = state.items.filter(i => i.type === "product" && i.starred);
+        let unaddedFavorites = favorites.filter(i => !isItemInCurrentList(i));
+
+        if (favorites.length > 0 && unaddedFavorites.length === 0 && state.selectedList) {
+            switchTab("catalog");
+            openPostAddPrompt(`⭐ Усі товари з улюблених вже додано до списку "${state.selectedList}"!`);
+        } else {
+            switchTab("favorites");
+        }
+    }
+
+    function toggleInList(id, event) {
+        if (event) event.stopPropagation();
+        const item = state.items.find(i => i.id === id);
+        if (!item) return;
+
+        if (!item.lists) item.lists = [];
+
+        if (state.currentTab === "mylist" && state.selectedList) {
+            const idx = item.lists.indexOf(state.selectedList);
+            if (idx > -1) {
+                item.lists.splice(idx, 1);
+            }
+            persist();
+            render();
+        } else if ((state.currentTab === "catalog" || state.currentTab === "favorites") && state.selectedList) {
+            const idx = item.lists.indexOf(state.selectedList);
+            if (idx > -1) {
+                openPostAddPrompt(`⚠️ Товар "${item.name}" вже є у списку "${state.selectedList}"!`);
+            } else {
+                item.lists.push(state.selectedList);
+                persist();
+                openPostAddPrompt(`Товар "${item.name}" успішно додано до списку <b>"${state.selectedList}"</b>!`);
+            }
+        } else {
+            state.pendingProductId = id;
+            openSelectListModal();
+        }
+    }
+
+    function openSelectListModal() {
+        const selectEl = document.getElementById("targetListSelect");
+        const existingGroup = document.getElementById("existingListGroup");
+        const newGroup = document.getElementById("newListInputGroup");
+        const modalTitle = document.getElementById("selectListModalTitle");
+
+        if (selectEl) selectEl.innerHTML = "";
+
+        if (state.customLists.length === 0) {
+            if (modalTitle) modalTitle.innerHTML = `Додати до списку<br><span style="font-size: 19px; color: #319795; font-weight: 800;">Новий список</span>`;
+            if (existingGroup) existingGroup.style.display = "none";
+            if (newGroup) newGroup.style.display = "block";
+            const newListNameInput = document.getElementById("newListNameInput");
+            if (newListNameInput) {
+                newListNameInput.value = "";
+                newListNameInput.placeholder = "Наприклад: Дім, Супермаркет...";
+            }
+        } else {
+            if (modalTitle) modalTitle.innerHTML = `Додати до списку<br><span style="font-size: 19px; color: #319795; font-weight: 800;">Виберіть список</span>`;
+            if (existingGroup) existingGroup.style.display = "block";
+            if (newGroup) newGroup.style.display = "none";
+
+            state.customLists.forEach(listName => {
+                const opt = document.createElement("option");
+                opt.value = listName;
+                opt.innerText = listName;
+                if (state.selectedList === listName) {
+                    opt.selected = true;
+                }
+                if (selectEl) selectEl.appendChild(opt);
+            });
+        }
+
+        const selectListModal = document.getElementById("selectListModal");
+        if (selectListModal) selectListModal.classList.add("active");
+    }
+
+    function closeSelectListModal() {
+        state.pendingProductId = null;
+        const selectListModal = document.getElementById("selectListModal");
+        if (selectListModal) selectListModal.classList.remove("active");
+    }
+
+    function confirmAddToList() {
+        const id = state.pendingProductId;
+        if (!id) return;
+
+        const item = state.items.find(i => i.id === id);
+        if (!item) {
+            closeSelectListModal();
+            return;
+        }
+
+        let targetList = state.selectedList;
+
+        if (state.customLists.length === 0) {
+            const newListNameInput = document.getElementById("newListNameInput");
+            const inputVal = newListNameInput ? newListNameInput.value.trim() : "";
+            if (!inputVal) {
+                alert("Будь ласка, введіть назву нового списку.");
+                return;
+            }
+            if (!state.customLists.includes(inputVal)) {
+                state.customLists.push(inputVal);
+            }
+            targetList = inputVal;
+            state.selectedList = inputVal;
+        } else {
+            const targetListSelect = document.getElementById("targetListSelect");
+            const selectedVal = targetListSelect ? targetListSelect.value : "";
+            if (selectedVal) {
+                targetList = selectedVal;
+                state.selectedList = selectedVal;
+            }
+        }
+
+        if (!item.lists) item.lists = [];
+        let alreadyExists = item.lists.includes(targetList);
+        if (!alreadyExists) {
+            item.lists.push(targetList);
+        }
+
+        persist();
+        closeSelectListModal();
+        render();
+        
+        if (alreadyExists) {
+            openPostAddPrompt(`⚠️ Товар "${item.name}" вже є у списку "${targetList}"!`);
+        } else {
+            openPostAddPrompt(`Товар "${item.name}" успішно додано до списку <b>"${targetList}"</b>!`);
+        }
+    }
+
+    function isItemCheckedInCurrentList(item) {
+        if (!state.selectedList || !item.checkedLists) return false;
+        return item.checkedLists.includes(state.selectedList);
+    }
+
+    function toggleCheck(id, event) {
+        if (event) event.stopPropagation();
+        const item = state.items.find(i => i.id === id);
+        if (item && state.selectedList) {
+            if (!item.checkedLists) item.checkedLists = [];
+            let idx = item.checkedLists.indexOf(state.selectedList);
+            let wasChecked = idx > -1;
+            if (wasChecked) {
+                item.checkedLists.splice(idx, 1);
+            } else {
+                item.checkedLists.push(state.selectedList);
+                item.purchaseCount = (item.purchaseCount || 0) + 1;
+            }
+            persist();
+            render();
+        }
+    }
+
+    function toggleCategoryCollapse(categoryName) {
+        let current = state.collapsedCategories[categoryName];
+        if (current === undefined) {
+            state.collapsedCategories[categoryName] = false;
+        } else {
+            state.collapsedCategories[categoryName] = !current;
+        }
+        render();
+    }
+
+    function sortItems() {
+        let categories = state.items.filter(i => i.type === "category");
+        let products = state.items.filter(i => i.type === "product");
+
+        products.sort((a, b) => a.name.localeCompare(b.name));
+
+        let newItems = [];
+        categories.forEach(cat => {
+            newItems.push(cat);
+            let catProducts = products.filter(p => p.category === cat.name);
+            newItems.push(...catProducts);
+        });
+
+        let unassigned = products.filter(p => !categories.some(c => c.name === p.category));
+        newItems.push(...unassigned);
+
+        state.items = newItems;
+        persist();
+        render();
+    }
+
+    function populateCategorySelect() {
+        const selectCat = document.getElementById("newProductCategory");
+        if (!selectCat) return;
+        selectCat.innerHTML = "";
+        const categories = state.items.filter(i => i.type === "category" && !i.isGroup && !i.isSubGroup);
+        categories.forEach(cat => {
+            const opt = document.createElement("option");
+            opt.value = cat.name;
+            opt.innerText = cat.name;
+            selectCat.appendChild(opt);
+        });
+
+        const optNew = document.createElement("option");
+        optNew.value = "__NEW_CATEGORY__";
+        optNew.innerText = "➕ Створити нову категорію...";
+        selectCat.appendChild(optNew);
+
+        const groupNewCategory = document.getElementById("groupNewCategory");
+        if (groupNewCategory) groupNewCategory.style.display = "none";
+        const newCategoryInput = document.getElementById("newCategoryInput");
+        if (newCategoryInput) newCategoryInput.value = "";
+    }
+
+    function handleCategoryChange() {
+        const selectCat = document.getElementById("newProductCategory");
+        const groupNewCat = document.getElementById("groupNewCategory");
+        if (selectCat && groupNewCat) {
+            if (selectCat.value === "__NEW_CATEGORY__") {
+                groupNewCat.style.display = "flex";
+                const newCatInput = document.getElementById("newCategoryInput");
+                if (newCatInput) newCatInput.focus();
+            } else {
+                groupNewCat.style.display = "none";
+            }
+        }
+    }
+
+    function openModal() {
+        if (state.currentTab === "mylist" && state.selectedList) {
+            const titleEl = document.getElementById("addChoiceModalTitle");
+            if (titleEl) {
+                titleEl.innerHTML = `Додати товари до списку<br><span style="font-size: 19px; color: #319795; font-weight: 800;">${state.selectedList}</span>`;
+            }
+            const choiceModal = document.getElementById("addChoiceModal");
+            if (choiceModal) choiceModal.classList.add("active");
+            return;
+        }
+
+        openAddModalDirectly();
+    }
+
+    function openAddModalDirectly(prefillName = "") {
+        const modalTitle = document.getElementById("modalTitle");
+        const labelInput = document.getElementById("labelInputName");
+        const groupCategory = document.getElementById("groupCategory");
+        const groupNewCat = document.getElementById("groupNewCategory");
+        const groupAddToList = document.getElementById("groupAddToSelectedList");
+        const addToListCheckbox = document.getElementById("addToSelectedListCheckbox");
+        const addToListLabel = document.getElementById("addToSelectedListLabel");
+        const inputName = document.getElementById("newProductName");
+
+        if (inputName) inputName.value = prefillName;
+        if (groupNewCat) groupNewCat.style.display = "none";
+
+        if (state.currentTab === "mylist" && !state.selectedList) {
+            if (modalTitle) modalTitle.innerText = "Мій новий список";
+            if (labelInput) labelInput.innerText = "Назва нового списку";
+            if (inputName) inputName.placeholder = "Наприклад: Супермаркет, Дім...";
+            if (groupCategory) groupCategory.style.display = "none";
+            if (groupAddToList) groupAddToList.style.display = "none";
+        } else if (state.currentTab === "lists") {
+            if (modalTitle) modalTitle.innerText = "Мій новий список";
+            if (labelInput) labelInput.innerText = "Назва нового списку";
+            if (inputName) inputName.placeholder = "Наприклад: Святковий стіл...";
+            if (groupCategory) groupCategory.style.display = "none";
+            if (groupAddToList) groupAddToList.style.display = "none";
+        } else {
+            if (modalTitle) modalTitle.innerText = "Додати новий продукт";
+            if (labelInput) labelInput.innerText = "Назва продукту";
+            if (inputName) inputName.placeholder = "Наприклад: Лампочка, Мука...";
+            if (groupCategory) groupCategory.style.display = "block";
+            populateCategorySelect();
+
+            if (state.currentTab === "catalog" && state.selectedList && groupAddToList) {
+                groupAddToList.style.display = "flex";
+                if (addToListCheckbox) addToListCheckbox.checked = true;
+                if (addToListLabel) addToListLabel.innerText = `Також додати до списку "${state.selectedList}"`;
+            } else if (groupAddToList) {
+                groupAddToList.style.display = "none";
+            }
+        }
+
+        const addModal = document.getElementById("addModal");
+        if (addModal) addModal.classList.add("active");
+        if (inputName) {
+            setTimeout(() => inputName.focus(), 50);
+        }
+    }
+
+    function closeAddChoiceModal() {
+        const choiceModal = document.getElementById("addChoiceModal");
+        if (choiceModal) choiceModal.classList.remove("active");
+    }
+
+    function chooseAddFromCatalog() {
+        closeAddChoiceModal();
+        switchTab("catalog");
+    }
+
+    function chooseAddFromFavorites() {
+        closeAddChoiceModal();
+        let favorites = state.items.filter(i => i.type === "product" && i.starred);
+        if (favorites.length === 0) {
+            openPostAddPrompt("⚠️ У вас поки немає улюблених товарів (⭐). Оберіть інше джерело або створіть новий товар.");
+            setTimeout(() => {
+                const choiceModal = document.getElementById("addChoiceModal");
+                if (choiceModal) choiceModal.classList.add("active");
+            }, 300);
+        } else {
+            switchTab("favorites");
+        }
+    }
+
+    function chooseAddCustomProduct() {
+        closeAddChoiceModal();
+        openAddModalDirectly();
+    }
+
+    function closeModal() {
+        const addModal = document.getElementById("addModal");
+        if (addModal) addModal.classList.remove("active");
+    }
+
+    function getSmartIcon(name, category) {
+        const lower = name.toLowerCase().trim();
+        if (lower.includes("велосипед")) return "🚲";
+        if (lower.includes("ламп")) return "💡";
+        if (lower.includes("батарей") || lower.includes("акумулятор")) return "🔋";
+        if (lower.includes("молок")) return "🥛";
+        if (lower.includes("сир")) return "🧀";
+        if (lower.includes("яйц")) return "🥚";
+        if (lower.includes("хліб") || lower.includes("батон")) return "🍞";
+        if (lower.includes("цукор") || lower.includes("сахар")) return "🧂";
+        if (lower.includes("мук") || lower.includes("борошн")) return "🌾";
+        if (lower.includes("м'яч") || lower.includes("мьяч")) return "⚽";
+        if (lower.includes("яблук")) return "🍎";
+        if (lower.includes("банан")) return "🍌";
+        if (lower.includes("авокад") || lower.includes("авакад")) return "🥑";
+        if (lower.includes("кавун") || lower.includes("арбуз")) return "🍉";
+        if (lower.includes("дин")) return "🍈";
+        if (lower.includes("гриб")) return "🍄";
+        if (lower.includes("вод")) return "💧";
+        if (lower.includes("кав")) return "☕";
+        if (lower.includes("чай")) return "🍵";
+        if (lower.includes("мил")) return "🧼";
+        if (lower.includes("папір") || lower.includes("серветк")) return "🧻";
+        if (lower.includes("порошок") || lower.includes("гель")) return "🫧";
+        if (lower.includes("губк")) return "🧽";
+        if (lower.includes("відр")) return "🪣";
+        if (lower.includes("масло") || lower.includes("оливк")) return "🧈";
+        if (lower.includes("макарон") || lower.includes("спагеті")) return "🍝";
+        if (lower.includes("ковбас") || lower.includes("сосиск") || lower.includes("сардель")) return "🌭";
+        if (lower.includes("курк") || lower.includes("куряч") || lower.includes("індич") || lower.includes("качк")) return "🍗";
+        if (lower.includes("свинин") || lower.includes("яловичин") || lower.includes("телятин") || lower.includes("фарш") || lower.includes("м'яс")) return "🥩";
+        if (lower.includes("риб") || lower.includes("лосос") || lower.includes("оселед") || lower.includes("скумбр") || lower.includes("кревет")) return "🐟";
+        
+        if (category === "М'ясо") return "🥩";
+        if (category === "Птиця") return "🍗";
+        if (category === "Риба та морепродукти") return "🐟";
+        if (category === "Ковбасні вироби та делікатеси") return "🌭";
+        if (category === "Бакалія") return "🥫";
+        if (category === "Господарські товари") return "🧰";
+        
+        return "🛒";
+    }
+
+    function submitModalData() {
+        const inputName = document.getElementById("newProductName");
+        const val = inputName ? inputName.value.trim() : "";
+
+        if (!val) {
+            alert("Будь ласка, введіть назву.");
+            return;
+        }
+
+        if (state.currentTab === "lists" || (state.currentTab === "mylist" && !state.selectedList)) {
+            if (!state.customLists.includes(val)) {
+                state.customLists.push(val);
+            }
+            state.selectedList = val;
+            persist();
+            closeModal();
+            state.promptListCandidate = val;
+            openEmptyListPrompt();
+            return;
+        }
+
+        const existingProduct = state.items.find(i => i.type === "product" && i.name.toLowerCase() === val.toLowerCase());
+        
+        if (existingProduct) {
+            closeModal();
+            if (inputName) inputName.value = "";
+            
+            if (state.selectedList) {
+                if (!existingProduct.lists) existingProduct.lists = [];
+                let alreadyInList = existingProduct.lists.includes(state.selectedList);
+                if (!alreadyInList) {
+                    existingProduct.lists.push(state.selectedList);
+                    persist();
+                }
+                if (alreadyInList) {
+                    openPostAddPrompt(`⚠️ Товар "${existingProduct.name}" вже є у списку "${state.selectedList}"!`);
+                } else {
+                    openPostAddPrompt(`Товар "${existingProduct.name}" успішно додано до списку <b>"${state.selectedList}"</b>!`);
+                }
+            } else {
+                alert(`Товар з назвою "${existingProduct.name}" вже існує в каталозі!`);
+            }
+            render();
+            return;
+        }
+
+        const categorySelect = document.getElementById("newProductCategory");
+        let category = categorySelect ? categorySelect.value : "Бакалія";
+
+        if (category === "__NEW_CATEGORY__") {
+            const newCatInput = document.getElementById("newCategoryInput");
+            category = newCatInput ? newCatInput.value.trim() : "";
+            if (!category) {
+                alert("Будь ласка, введіть назву нової категорії.");
+                return;
+            }
+            const existingCat = state.items.find(i => i.type === "category" && i.name.toLowerCase() === category.toLowerCase());
+            if (!existingCat) {
+                const colors = ["#319795", "#2b6cb0", "#805ad5", "#d69e2e", "#e53e3e", "#38a169"];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                state.items.push({
+                    id: Date.now(),
+                    name: category,
+                    type: "category",
+                    icon: "📁",
+                    color: randomColor,
+                    parentCategory: null
+                });
+            } else {
+                category = existingCat.name;
+            }
+        }
+
+        const icon = getSmartIcon(val, category);
+        const addToListCheckbox = document.getElementById("addToSelectedListCheckbox");
+        const shouldAddToSelectedList = Boolean(
+            state.selectedList && (
+                state.currentTab === "mylist" ||
+                (state.currentTab === "catalog" && addToListCheckbox && addToListCheckbox.checked)
+            )
+        );
+
+        let newProduct = {
+            id: Date.now() + 1,
+            name: val,
+            type: "product",
+            category: category,
+            icon: icon,
+            starred: false,
+            lists: shouldAddToSelectedList ? [state.selectedList] : [],
+            checkedLists: []
+        };
+
+        state.items.push(newProduct);
+        persist();
+        closeModal();
+        render();
+
+        if (shouldAddToSelectedList) {
+            openPostAddPrompt(`Новий товар "${val}" створено та додано до списку <b>"${state.selectedList}"</b>!`);
+        } else {
+            alert(`Новий товар "${val}" успішно додано до каталогу (категорія: ${category})!`);
+        }
+    }
+
+    function promptDelete(id, event) {
+        if (event) event.stopPropagation();
+        const item = state.items.find(i => i.id === id);
+        if (!item) return;
+
+        if (state.currentTab === "favorites") {
+            item.starred = false;
+            persist();
+            render();
+            return;
+        }
+
+        if (state.currentTab === "mylist") {
+            state.itemToDelete = id;
+            const titleEl = document.getElementById("deleteModalTitle");
+            const textEl = document.getElementById("deleteModalText");
+            if (titleEl) titleEl.innerText = `Прибрати "${item.name}" з мого списку?`;
+            if (textEl) textEl.innerText = `Товар буде прибрано зі списку, але залишиться у загальному каталозі.`;
+            const deleteModal = document.getElementById("deleteModal");
+            if (deleteModal) deleteModal.classList.add("active");
+            return;
+        }
+
+        state.itemToDelete = id;
+        const titleEl = document.getElementById("deleteModalTitle");
+        const textEl = document.getElementById("deleteModalText");
+
+        if (item.type === "category") {
+            if (titleEl) titleEl.innerText = `Видалити категорію "${item.name}"?`;
+            if (textEl) textEl.innerText = `Усі товари у цій категорії також будуть видалені. Продовжити?`;
+        } else {
+            if (titleEl) titleEl.innerText = `Видалити "${item.name}"?`;
+            if (textEl) textEl.innerText = `Цей товар буде повністю видалено з каталогу.`;
+        }
+
+        const deleteModal = document.getElementById("deleteModal");
+        if (deleteModal) deleteModal.classList.add("active");
+    }
+
+    function promptDeleteListByIndex(idx, event) {
+        const listName = state.customLists[idx];
+        if (listName !== undefined) promptDeleteList(listName, event);
+    }
+
+    function promptDeleteList(listName, event) {
+        if (event) event.stopPropagation();
+        state.listToDelete = listName;
+        const titleEl = document.getElementById("deleteModalTitle");
+        const textEl = document.getElementById("deleteModalText");
+        if (titleEl) titleEl.innerText = `Видалити список "${listName}"?`;
+        if (textEl) textEl.innerText = `Ви дійсно хочете видалити цей список? Товари у загальному каталозі залишаться незмінними.`;
+        const deleteModal = document.getElementById("deleteModal");
+        if (deleteModal) deleteModal.classList.add("active");
+    }
+
+    function confirmDeleteAction() {
+        if (state.listToDelete !== null) {
+            let listName = state.listToDelete;
+            state.customLists = state.customLists.filter(l => l !== listName);
+            state.items.forEach(item => {
+                if (item.lists) {
+                    item.lists = item.lists.filter(l => l !== listName);
+                }
+                if (item.checkedLists) {
+                    item.checkedLists = item.checkedLists.filter(l => l !== listName);
+                }
+            });
+            if (state.selectedList === listName) {
+                state.selectedList = state.customLists.length > 0 ? state.customLists[0] : null;
+            }
+            state.listToDelete = null;
+            persist();
+            closeDeleteModal();
+            render();
+            return;
+        }
+
+        if (state.itemToDelete !== null) {
+            let id = state.itemToDelete;
+            let item = state.items.find(i => i.id === id);
+            
+            if (item) {
+                if (state.currentTab === "mylist") {
+                    if (item.lists) {
+                        item.lists = item.lists.filter(l => l !== state.selectedList);
+                    }
+                    if (item.checkedLists) {
+                        item.checkedLists = item.checkedLists.filter(l => l !== state.selectedList);
+                    }
+                } else if (state.currentTab === "catalog") {
+                    if (item.type === "category") {
+                        let subNames = state.items.filter(c => c.parentCategory === item.name).map(c => c.name);
+                        state.items = state.items.filter(i => i.id !== id && i.category !== item.name && i.parentCategory !== item.name && !subNames.includes(i.category));
+                    } else {
+                        state.items = state.items.filter(i => i.id !== id);
+                    }
+                }
+            }
+
+            persist();
+            closeDeleteModal();
+            render();
+        }
+    }
+
+    function closeDeleteModal() {
+        state.itemToDelete = null;
+        state.listToDelete = null;
+        const deleteModal = document.getElementById("deleteModal");
+        if (deleteModal) deleteModal.classList.remove("active");
+    }
+
+    function getCategoryProductCount(catItem) {
+        if (catItem.isGroup) {
+            let directSubs = state.items.filter(c => c.parentCategory === catItem.name);
+            let subNames = [];
+            directSubs.forEach(s => {
+                subNames.push(s.name);
+                if (s.isSubGroup) {
+                    let deepSubs = state.items.filter(dc => dc.parentCategory === s.name).map(dc => dc.name);
+                    subNames.push(...deepSubs);
+                }
+            });
+            return state.items.filter(p => p.type === "product" && subNames.includes(p.category)).length;
+        } else if (catItem.isSubGroup) {
+            let deepSubNames = state.items.filter(dc => dc.parentCategory === catItem.name).map(dc => dc.name);
+            return state.items.filter(p => p.type === "product" && (p.category === catItem.name || deepSubNames.includes(p.category))).length;
+        } else {
+            return state.items.filter(p => p.type === "product" && p.category === catItem.name).length;
+        }
+    }
+
+    function render() {
+        const area = document.getElementById("contentArea");
+        if (!area) return;
+        area.innerHTML = "";
+
+        updateNavActiveStates();
+
+        if (state.currentTab === "home") {
+            const headerCard = document.createElement("div");
+            headerCard.style.cssText = "background: linear-gradient(135deg, #2b6cb0 0%, #319795 100%); color: white; padding: 16px 18px; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(43, 108, 176, 0.25); flex-shrink: 0; margin-bottom: 8px; position: sticky; top: 0; z-index: 10;";
+            
+            headerCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">🏠</span>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Головна</div>
+                            <div style="font-size: 18px; font-weight: 700;">За покупками</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button onclick="alert('Меню додатку: Ви на головній сторінці')" title="Меню" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">☰</button>
+                        <button onclick="switchTab('catalog')" title="Пошук/Каталог" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">🔍</button>
+                        <button onclick="sortItems()" title="Сортування" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">⇅</button>
+                    </div>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; margin-top: 2px;">
+                    Ласкаво просимо! Керуйте вашими покупками легко та зручно.
+                </div>
+            `;
+            area.appendChild(headerCard);
+
+            const quickNavTitle = document.createElement("div");
+            quickNavTitle.style.cssText = "font-size: 14px; font-weight: 700; color: #4a5568; margin-top: 12px; margin-bottom: 4px; padding-left: 4px;";
+            quickNavTitle.innerText = "Швидкий перехід:";
+            area.appendChild(quickNavTitle);
+
+            const navBtnsData = [
+                { title: "📖 Каталог товарів", desc: "Перегляд усіх доступних товарів і категорій", tab: "catalog", color: "#319795" },
+                { title: "📝 Обраний список", desc: state.selectedList ? `Поточний: ${state.selectedList}` : "Список покупок не вибрано", tab: "mylist", color: "#2b6cb0" },
+                { title: "⭐ Улюблені товари", desc: "Швидкий доступ до обраних продуктів", tab: "favorites", color: "#d69e2e" },
+                { title: "📚 Усі мої списки", desc: `${state.customLists.length} створених списків`, tab: "lists", color: "#805ad5" }
+            ];
+
+            navBtnsData.forEach(item => {
+                const btnCard = document.createElement("div");
+                if (item.tab === 'catalog') {
+                    btnCard.style.cssText = "background: linear-gradient(135deg, #319795 0%, #38a169 100%); color: white; border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 6px 20px rgba(56, 161, 105, 0.35); cursor: pointer; transition: transform 0.15s; flex-shrink: 0; margin-bottom: 4px;";
+                    btnCard.onclick = () => switchTab(item.tab);
+                    btnCard.innerHTML = `
+                        <div>
+                            <div style="font-size: 17px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">${item.title}</div>
+                            <div style="font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 3px; font-weight: 500;">${item.desc}</div>
+                        </div>
+                        <div style="font-size: 20px; color: white; background: rgba(255,255,255,0.25); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">➔</div>
+                    `;
+                } else {
+                    btnCard.style.cssText = `background: white; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; border-left: 6px solid ${item.color}; transition: transform 0.1s; flex-shrink: 0;`;
+                    btnCard.onclick = () => switchTab(item.tab);
+                    btnCard.innerHTML = `
+                        <div>
+                            <div style="font-size: 15px; font-weight: 700; color: #2d3748;">${item.title}</div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 2px;">${item.desc}</div>
+                        </div>
+                        <div style="font-size: 16px; color: #a0aec0;">➔</div>
+                    `;
+                }
+                area.appendChild(btnCard);
+            });
+            return;
+        }
+
+        if (state.currentTab === "lists") {
+            const headerCard = document.createElement("div");
+            headerCard.style.cssText = "background: linear-gradient(135deg, #2b6cb0 0%, #4c51bf 100%); color: white; padding: 16px 18px; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(43, 108, 176, 0.25); flex-shrink: 0; margin-bottom: 8px; position: sticky; top: 0; z-index: 10;";
+            
+            let listsCount = state.customLists.length;
+            
+            headerCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">📚</span>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Керування</div>
+                            <div style="font-size: 18px; font-weight: 700;">Мої Списки (${listsCount})</div>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('home')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">← Головна</button>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; margin-top: 2px;">
+                    Створюйте та керуйте списками покупок
+                </div>
+                <button onclick="openModal()" style="background: rgba(255, 255, 255, 0.95); border: none; color: #2b6cb0; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; width: 100%; transition: background 0.2s;">
+                    + СТВОРИТИ НОВИЙ СПИСОК
+                </button>
+            `;
+            area.appendChild(headerCard);
+
+            if (state.customLists.length === 0) {
+                let emptyDiv = document.createElement("div");
+                emptyDiv.style.cssText = "text-align: center; color: #a0aec0; margin-top: 40px; font-size: 14px;";
+                emptyDiv.innerText = "Немає створених списків";
+                area.appendChild(emptyDiv);
+            } else {
+                state.customLists.forEach((listName, idx) => {
+                    const listProducts = state.items.filter(i => i.type === "product" && i.lists && i.lists.includes(listName));
+                    const totalCount = listProducts.length;
+                    const checkedCount = listProducts.filter(i => i.checkedLists && i.checkedLists.includes(listName)).length;
+                    const subtitleText = totalCount === 0
+                        ? 'Порожній список (натисніть для наповнення)'
+                        : `Товарів: ${totalCount} (куплено: ${checkedCount})`;
+
+                    const card = document.createElement("div");
+                    card.className = "item-card full-width-card";
+                    card.style.borderLeftColor = state.selectedList === listName ? "#319795" : "#2b6cb0";
+                    card.onclick = () => handleListClick(listName);
+
+                    card.innerHTML = `
+                        <div class="item-left">
+                            <div class="item-img-wrap">📋</div>
+                            <div class="item-text-group">
+                                <div class="item-title">${listName}</div>
+                                <div class="item-subtitle">${subtitleText}</div>
+                            </div>
+                        </div>
+                        <div class="item-right">
+                            <span style="background: ${totalCount > 0 ? '#e6fffa' : '#edf2f7'}; color: ${totalCount > 0 ? '#2c7a7b' : '#718096'}; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 12px;">
+                                ${totalCount}
+                            </span>
+                            <button class="dots-menu-btn" onclick="promptDeleteListByIndex(${idx}, event)" title="Видалити список">⋮</button>
+                        </div>
+                    `;
+                    area.appendChild(card);
+                });
+            }
+            return;
+        }
+
+        let allProducts = state.items.filter(i => i.type === "product");
+        let allFavorites = state.items.filter(i => i.type === "product" && i.starred);
+
+        let catalogTotalCount = allProducts.length;
+        let favoritesTotalCount = allFavorites.length;
+
+        if (state.currentTab === "catalog") {
+            let addButtonText = "+ ДОДАТИ НОВИЙ ПРОДУКТ";
+            const escapedSearchVal = state.searchQuery.replace(/"/g, '&quot;');
+            
+            const headerCard = document.createElement("div");
+            headerCard.style.cssText = "background: linear-gradient(135deg, #319795 0%, #38a169 100%); color: white; padding: 16px 18px; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(56, 161, 105, 0.25); flex-shrink: 0; margin-bottom: 8px; position: sticky; top: 0; z-index: 10;";
+            
+            headerCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">📖</span>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Довідник</div>
+                            <div style="font-size: 18px; font-weight: 700;">Каталог Товарів (${catalogTotalCount})</div>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('home')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">← Головна</button>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; margin-top: 2px;">
+                    ${state.selectedList ? 'Активний список для додавання: <b>' + state.selectedList + '</b>' : 'Оберіть список для швидкого додавання товарів'}
+                </div>
+                <div class="search-box-wrap" style="margin-top: 2px; margin-bottom: 0;">
+                    <span style="font-size: 16px;">🔍</span>
+                    <input type="text" id="searchInputField" placeholder="Шукати товари у каталозі..." value="${escapedSearchVal}" oninput="handleSearchInput(event)" autocomplete="off">
+                    <button id="clearSearchBtn" onclick="clearSearch()" title="Очистити пошук" style="display: ${state.searchQuery.length > 0 ? 'inline-flex' : 'none'}; background: #edf2f7; border: none; color: #4a5568; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 700; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;">✕</button>
+                </div>
+                <button onclick="openAddModalDirectly()" style="background: rgba(255, 255, 255, 0.95); border: none; color: #276749; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; width: 100%; transition: background 0.2s;">
+                    ${addButtonText}
+                </button>
+            `;
+            area.appendChild(headerCard);
+        } else if (state.currentTab === "mylist") {
+            const headerCard = document.createElement("div");
+            headerCard.style.cssText = "background: linear-gradient(135deg, #319795 0%, #2b6cb0 100%); color: white; padding: 16px 18px; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 15px rgba(49, 151, 149, 0.25); flex-shrink: 0; margin-bottom: 8px; position: sticky; top: 0; z-index: 10;";
+            
+            let listTitle = state.selectedList ? state.selectedList : 'Список не вибрано';
+            let myListCount = state.selectedList ? state.items.filter(i => i.type === "product" && isItemInCurrentList(i)).length : 0;
+            let subtitleText = state.selectedList ? `Активний список покупок (${myListCount} товарів)` : 'Оберіть або створіть список у вкладці "Списки"';
+            
+            headerCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">📋</span>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Обраний список</div>
+                            <div style="font-size: 18px; font-weight: 700; word-break: break-all;">${listTitle} ${state.selectedList ? '(' + myListCount + ')' : ''}</div>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('lists')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;">Змінити</button>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; margin-top: 2px;">
+                    ${subtitleText}
+                </div>
+                <button onclick="openModal()" style="background: rgba(255, 255, 255, 0.95); border-radius: 12px; border: none; color: #2b6cb0; padding: 12px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; width: 100%; transition: background 0.2s;">
+                    + ДОДАТИ ТОВАР У СПИСОК
+                </button>
+            `;
+            area.appendChild(headerCard);
+        } else if (state.currentTab === "favorites") {
+            const headerCard = document.createElement("div");
+            headerCard.style.cssText = "background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%); color: white; padding: 16px 18px; border-radius: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(214, 158, 46, 0.25); flex-shrink: 0; margin-bottom: 8px; position: sticky; top: 0; z-index: 10;";
+            
+            headerCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">⭐</span>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Обране</div>
+                            <div style="font-size: 18px; font-weight: 700;">Улюблені Товари (${favoritesTotalCount})</div>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('home')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;">← Головна</button>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 6px; margin-top: 2px;">
+                    Швидке додавання улюблених товарів до списку
+                </div>
+            `;
+            area.appendChild(headerCard);
+
+            if (favoritesTotalCount === 0) {
+                let noticeDiv = document.createElement("div");
+                noticeDiv.style.cssText = "background: #fff; padding: 16px; border-radius: 12px; text-align: center; color: #d69e2e; font-weight: 600; margin-top: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);";
+                noticeDiv.innerHTML = "⭐ Улюблені товари закінчилися!<br><span style='font-size: 12px; color: #718096; font-weight: 400;'>Позначте товари зірочкою в каталозі, щоб вони з'явилися тут.</span>";
+                area.appendChild(noticeDiv);
+                return;
+            }
+        }
+
+        const listContainer = document.createElement("div");
+        listContainer.id = "itemsListContainer";
+        listContainer.style.cssText = "display: flex; flex-direction: column; gap: 10px;";
+        area.appendChild(listContainer);
+
+        renderItemsList();
+    }
+
+    function renderItemsList() {
+        const listContainer = document.getElementById("itemsListContainer");
+        if (!listContainer) {
+            render();
+            return;
+        }
+        listContainer.innerHTML = "";
+
+        const normalizedQuery = state.searchQuery.toLowerCase().trim();
+        const rawTrimmedQuery = state.searchQuery.trim();
+
+        let list = state.items.filter(item => {
+            const match = normalizedQuery === "" || item.name.toLowerCase().includes(normalizedQuery);
+            if (state.currentTab === "mylist") {
+                return match && item.type === "product" && isItemInCurrentList(item);
+            }
+            if (state.currentTab === "favorites") {
+                return match && item.type === "product" && item.starred;
+            }
+            return match;
+        });
+
+        if (state.currentTab === "mylist") {
+            list.sort((a, b) => {
+                let aChecked = isItemCheckedInCurrentList(a);
+                let bChecked = isItemCheckedInCurrentList(b);
+                return (aChecked === bChecked) ? 0 : aChecked ? 1 : -1;
+            });
+        }
+
+        if (list.length === 0) {
+            let emptyDiv = document.createElement("div");
+            emptyDiv.style.cssText = "text-align: center; color: #718096; margin-top: 24px; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px;";
+            const emptyText = document.createElement("div");
+            emptyText.innerText = state.currentTab === "favorites"
+                ? "Немає улюблених товарів"
+                : (state.currentTab === "mylist" && !state.selectedList
+                    ? "Не вибрано жодного списку. Перейдіть у вкладку 'Списки'"
+                    : "Нічого не знайдено за запитом");
+            emptyDiv.appendChild(emptyText);
+
+            if (state.currentTab === "catalog" && rawTrimmedQuery !== "") {
+                const quickAddBtn = document.createElement("button");
+                quickAddBtn.style.cssText = "background: #319795; color: #ffffff; border: none; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(49, 151, 149, 0.25);";
+                quickAddBtn.innerText = `➕ Додати новий продукт "${rawTrimmedQuery}"`;
+                quickAddBtn.onclick = () => openAddModalDirectly(rawTrimmedQuery);
+                emptyDiv.appendChild(quickAddBtn);
+            }
+
+            listContainer.appendChild(emptyDiv);
+            return;
+        }
+
+        let categories = state.items.filter(i => i.type === "category");
+        let categoryColorMap = {};
+        categories.forEach(c => {
+            categoryColorMap[c.name] = c.color || "#2b6cb0";
+        });
+
+        let isSearching = normalizedQuery !== "";
+
+        if (isSearching || state.currentTab !== "catalog") {
+            list.forEach(item => {
+                renderCard(listContainer, item, categoryColorMap);
+            });
+
+            if (state.currentTab === "catalog" && rawTrimmedQuery !== "") {
+                const exactExists = state.items.some(i => i.type === "product" && i.name.toLowerCase() === normalizedQuery);
+                if (!exactExists) {
+                    const quickAddWrap = document.createElement("div");
+                    quickAddWrap.style.cssText = "margin-top: 6px; display: flex; justify-content: center;";
+                    const quickAddBtn = document.createElement("button");
+                    quickAddBtn.style.cssText = "background: #ffffff; color: #276749; border: 2px dashed #38a169; padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;";
+                    quickAddBtn.innerText = `➕ Створити новий продукт "${rawTrimmedQuery}"`;
+                    quickAddBtn.onclick = () => openAddModalDirectly(rawTrimmedQuery);
+                    quickAddWrap.appendChild(quickAddBtn);
+                    listContainer.appendChild(quickAddWrap);
+                }
+            }
+        } else {
+            let topGroups = categories.filter(c => c.isGroup);
+            let independentCats = categories.filter(c => !c.isGroup && c.parentCategory === null);
+
+            topGroups.forEach(group => {
+                renderCard(listContainer, group, categoryColorMap);
+                let isGroupCollapsed = state.collapsedCategories[group.name] !== false;
+                
+                if (!isGroupCollapsed) {
+                    let subcats = categories.filter(c => c.parentCategory === group.name);
+                    subcats.forEach(subcat => {
+                        renderCard(listContainer, subcat, categoryColorMap);
+                        let isSubCollapsed = state.collapsedCategories[subcat.name] !== false;
+                        if (!isSubCollapsed) {
+                            if (subcat.isSubGroup) {
+                                let deepSubcats = categories.filter(dc => dc.parentCategory === subcat.name);
+                                deepSubcats.forEach(deepSubcat => {
+                                    renderCard(listContainer, deepSubcat, categoryColorMap, true);
+                                    let isDeepCollapsed = state.collapsedCategories[deepSubcat.name] !== false;
+                                    if (!isDeepCollapsed) {
+                                        let deepProds = list.filter(p => p.type === "product" && p.category === deepSubcat.name);
+                                        deepProds.sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0) || a.name.localeCompare(b.name));
+                                        deepProds.forEach(prod => {
+                                            renderCard(listContainer, prod, categoryColorMap, true);
+                                        });
+                                    }
+                                });
+                            }
+                            let prods = list.filter(p => p.type === "product" && p.category === subcat.name);
+                            prods.sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0) || a.name.localeCompare(b.name));
+                            prods.forEach(prod => {
+                                renderCard(listContainer, prod, categoryColorMap);
+                            });
+                        }
+                    });
+                }
+            });
+
+            independentCats.forEach(cat => {
+                renderCard(listContainer, cat, categoryColorMap);
+                let isCatCollapsed = state.collapsedCategories[cat.name] !== false;
+                if (!isCatCollapsed) {
+                    let prods = list.filter(p => p.type === "product" && p.category === cat.name);
+                    prods.sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0) || a.name.localeCompare(b.name));
+                    prods.forEach(prod => {
+                        renderCard(listContainer, prod, categoryColorMap);
+                    });
+                }
+            });
+        }
+    }
+
+    function renderCard(area, item, categoryColorMap, isDeepLevel = false) {
+        const card = document.createElement("div");
+        
+        if (item.type === "category") {
+            if (item.isGroup) {
+                card.className = "item-card group-card";
+            } else if (isDeepLevel) {
+                card.className = "item-card sub-subcat-card";
+            } else if (item.parentCategory) {
+                card.className = "item-card subcat-card";
+            } else {
+                card.className = "item-card";
+            }
+            
+            card.style.borderLeftColor = item.color;
+            let isCollapsed = state.collapsedCategories[item.name] !== false;
+            let count = getCategoryProductCount(item);
+            
+            card.onclick = () => toggleCategoryCollapse(item.name);
+
+            let leftHTML = `
+                <div class="item-left">
+                    <div class="item-img-wrap">${item.icon}</div>
+                    <div class="item-text-group">
+                        <div class="item-title">${item.name}</div>
+                        <div class="item-subtitle">Товарів: ${count}</div>
+                    </div>
+                </div>
+            `;
+            let rightHTML = `
+                <div class="item-right">
+                    <span class="category-arrow ${isCollapsed ? 'collapsed' : ''}">▼</span>
+                    ${state.currentTab === "catalog" && !item.isGroup && !item.isSubGroup ? `<button class="dots-menu-btn" onclick="promptDelete(${item.id}, event)" title="Видалити категорію">⋮</button>` : ''}
+                </div>
+            `;
+            card.innerHTML = leftHTML + rightHTML;
+        } else {
+            if (state.currentTab === "mylist" || state.currentTab === "favorites") {
+                card.className = "item-card full-width-card";
+            } else if (isDeepLevel) {
+                card.className = "item-card sub-subcat-product-card";
+            } else {
+                let isSubProduct = false;
+                let catObj = state.items.find(c => c.type === "category" && c.name === item.category);
+                if (catObj && catObj.parentCategory) {
+                    isSubProduct = true;
+                }
+                card.className = isSubProduct ? "item-card subcat-product-card" : "item-card product-card";
+            }
+
+            const parentColor = categoryColorMap[item.category] || "#805ad5";
+            card.style.borderLeftColor = parentColor;
+
+            let inCurrentList = isItemInCurrentList(item);
+
+            let leftHTML = "";
+            if (state.currentTab === "mylist") {
+                let isChecked = isItemCheckedInCurrentList(item);
+                leftHTML = `
+                    <div class="item-left">
+                        <div class="checkbox-custom ${isChecked ? 'checked' : ''}" onclick="toggleCheck(${item.id}, event)">${isChecked ? '✓' : ''}</div>
+                        <div class="item-img-wrap">${item.icon}</div>
+                        <div class="item-text-group">
+                            <div class="item-title" style="${isChecked ? 'text-decoration: line-through; color: #a0aec0;' : ''}">${item.name}</div>
+                            <div class="item-subtitle">${item.category}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                leftHTML = `
+                    <div class="item-left">
+                        <button class="star-toggle ${item.starred ? 'active' : ''}" onclick="toggleStar(${item.id}, event)">${item.starred ? '★' : '☆'}</button>
+                        <div class="item-img-wrap">${item.icon}</div>
+                        <div class="item-text-group">
+                            <div class="item-title">${item.name}</div>
+                            <div class="item-subtitle">${item.category}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let rightHTML = `
+                <div class="item-right">
+                    <button class="dots-menu-btn" onclick="toggleInList(${item.id}, event)" title="${inCurrentList ? 'Видалити зі списку' : 'Додати у список'}">
+                        ${inCurrentList ? '🛒' : '➕'}
+                    </button>
+                    ${state.currentTab === "catalog" ? `<button class="dots-menu-btn" onclick="promptDelete(${item.id}, event)" title="Видалити товар">⋮</button>` : ''}
+                    ${state.currentTab === "favorites" ? `<button class="dots-menu-btn" onclick="promptDelete(${item.id}, event)" title="Прибрати з улюблених" style="color: #d69e2e;">★</button>` : ''}
+                </div>
+            `;
+            card.innerHTML = leftHTML + rightHTML;
+        }
+
+        area.appendChild(card);
+    }
+
+    render();
+</script>
+
+</body>
+</html>
